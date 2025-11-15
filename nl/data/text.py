@@ -24,13 +24,24 @@ class LMTextDataModule:
         input_ids = [concat[i:i+self.max_seq_len] for i in range(0, total_len, self.max_seq_len)]
         return {"input_ids": input_ids}
 
+
     def dataloaders(self):
-        tokenized = self.ds.map(self._tokenize, batched=True, remove_columns=self.ds["train"].column_names)
-        chunked = tokenized.map(self._group_texts, batched=True)
+        tokenized = self.ds.map(
+        self._tokenize,
+        batched=True,
+        remove_columns=self.ds["train"].column_names,
+          )
+        chunked = tokenized.map(
+            self._group_texts,
+            batched=True,
+            remove_columns=tokenized["train"].column_names,
+        )
+
         def collate(batch):
             x = torch.tensor([b["input_ids"] for b in batch], dtype=torch.long)
             return x[:, :-1], x[:, 1:]   # inputs, targets (teacher forcing)
         return (
             torch.utils.data.DataLoader(chunked["train"], batch_size=self.batch_size, shuffle=True, collate_fn=collate),
             torch.utils.data.DataLoader(chunked["validation"], batch_size=self.batch_size, shuffle=False, collate_fn=collate)
+
         ), self.tokenizer
