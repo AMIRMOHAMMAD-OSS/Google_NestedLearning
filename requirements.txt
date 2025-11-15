@@ -1,0 +1,7 @@
+torch>=2.2
+transformers>=4.45
+datasets>=2.19
+sentencepiece>=0.1.99
+tqdm>=4.66
+numpy>=1.25
+pyyaml>=6.0.1
