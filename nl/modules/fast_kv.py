@@ -17,18 +17,21 @@ class FastKV(nn.Module):
         self.Wk = nn.Linear(d_model, d_kv, bias=False)
         self.Wv = nn.Linear(d_model, d_kv, bias=False)
         self.Wo = nn.Linear(d_kv, d_model, bias=False)
-        self.reset_fast_state()
+
+        # ✅ Register the buffer only ONCE here
+        self.register_buffer("_M", None, persistent=False)
 
     def reset_fast_state(self, batch_size: int = 0, device=None):
-        # M has shape [B, d_v, d_k]; here d_v=d_k=d_kv for simplicity
+        # ✅ Just ASSIGN to the existing buffer
         if batch_size > 0:
-            self.register_buffer("_M", torch.zeros(batch_size, self.d_kv, self.d_kv, device=device))
+            self._M = torch.zeros(batch_size, self.d_kv, self.d_kv,
+                                  device=device, dtype=self.Wq.weight.dtype)
         else:
             self._M = None
 
     @torch.no_grad()
     def inner_zero_fast(self):
-        if self._M is not None:
+        if isinstance(self._M, torch.Tensor):
             self._M.zero_()
 
     def forward(self, x):
@@ -37,8 +40,10 @@ class FastKV(nn.Module):
         returns: y: [B, T, d_model]
         """
         B, T, D = x.size()
-        if self._M is None or self._M.size(0) != B:
+        if (not isinstance(self._M, torch.Tensor)) or (self._M.size(0) != B):
+            # use x.device so it matches the input
             self.reset_fast_state(batch_size=B, device=x.device)
+
         M = self._M
         y_out = []
         for t in range(T):
@@ -50,5 +55,6 @@ class FastKV(nn.Module):
             y_out.append(self.Wo(yt))
             # Hebbian-like update (unnormalized linear attention)
             M = M + torch.bmm(vt.unsqueeze(-1), kt.unsqueeze(1))
+
         self._M = M
         return torch.stack(y_out, dim=1)
