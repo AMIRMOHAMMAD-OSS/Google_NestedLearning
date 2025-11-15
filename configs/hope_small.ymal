@@ -1,0 +1,43 @@
+# Model/runtime defaults suitable for WikiText-2
+exp_name: hope_small
+seed: 1337
+
+model:
+  vocab_size: 50257          # GPT-2 tokenizer
+  d_model: 512
+  d_ff: 2048
+  n_layers: 8
+  max_seq_len: 1024
+  dropout: 0.1
+
+  # Fast associative memory (linear attention)
+  d_kv: 128
+
+  # Continuum Memory System: per-level update frequencies (in steps)
+  cms_levels:
+    - { d_ff: 1024, update_every: 1 }
+    - { d_ff: 2048, update_every: 8 }
+    - { d_ff: 4096, update_every: 64 }
+
+  # Inner optimizer (Eq. 28–29) applied to Q/K/V projection layers
+  inner_lr: 5.0e-4
+  inner_scale_xtx: 1.0       # scale for (I - X^T X) term
+  inner_apply_during_eval: true
+  inner_apply_during_sampling: false
+
+train:
+  batch_size: 8
+  grad_accum_steps: 1
+  lr: 3.0e-4
+  weight_decay: 0.1
+  max_steps: 200_000
+  warmup_steps: 2000
+  eval_every: 2000
+  ckpt_every: 10_000
+  log_every: 100
+
+data:
+  tokenizer_name: gpt2
+  dataset_name: wikitext
+  dataset_config: wikitext-2-raw-v1
+  text_field: text
