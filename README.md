@@ -11,6 +11,7 @@ This repository implements **Nested Learning (NL)** and the **HOPE** module from
 
 ## Install
 
+pip install -r requirements.txt
 
 ## Train / Eval / Sample
 See `scripts/` for end-to-end commands on WikiText-2.
