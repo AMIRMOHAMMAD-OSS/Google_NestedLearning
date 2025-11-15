@@ -9,17 +9,43 @@ from nl.models.hope import HOPELM
 def load_cfg(path_model, path_data):
     with open(path_model, "r") as f:
         cfg = yaml.safe_load(f)
+
+    # Optional external data override
     if path_data:
         with open(path_data, "r") as f:
             data_over = yaml.safe_load(f)
-        cfg["data"] = { **cfg["data"], **data_over["data"] }
+        cfg["data"] = {**cfg["data"], **data_over["data"]}
+
+    # --- Build dataclasses explicitly to avoid double-passing cms_levels ---
+    # Convert list of dicts -> list[CMSLevelCfg]
+    cms_levels = [CMSLevelCfg(**lvl) for lvl in cfg["model"]["cms_levels"]]
+
     model_cfg = ModelCfg(
-        **cfg["model"],
-        cms_levels=[CMSLevelCfg(**d).__dict__ for d in cfg["model"]["cms_levels"]]
-    )  # dataclass <-> dict convenience
+        vocab_size=cfg["model"]["vocab_size"],
+        d_model=cfg["model"]["d_model"],
+        d_ff=cfg["model"]["d_ff"],
+        n_layers=cfg["model"]["n_layers"],
+        max_seq_len=cfg["model"]["max_seq_len"],
+        dropout=cfg["model"]["dropout"],
+        d_kv=cfg["model"]["d_kv"],
+        cms_levels=cms_levels,
+        inner_lr=cfg["model"]["inner_lr"],
+        inner_scale_xtx=cfg["model"]["inner_scale_xtx"],
+        inner_apply_during_eval=cfg["model"]["inner_apply_during_eval"],
+        inner_apply_during_sampling=cfg["model"]["inner_apply_during_sampling"],
+    )
+
     train_cfg = TrainCfg(**cfg["train"])
-    root = RootCfg(exp_name=cfg["exp_name"], seed=cfg["seed"], model=model_cfg, train=train_cfg, data=cfg["data"])
+
+    root = RootCfg(
+        exp_name=cfg["exp_name"],
+        seed=cfg["seed"],
+        model=model_cfg,
+        train=train_cfg,
+        data=cfg["data"],
+    )
     return root, cfg
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -128,3 +154,4 @@ def evaluate(model, val_loader, device):
 
 if __name__ == "__main__":
     main()
+
