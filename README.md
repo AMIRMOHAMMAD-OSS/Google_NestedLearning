@@ -165,6 +165,8 @@ python scripts/sample.py \
 
 If you use this implementation / codebase, please also cite the repository:
 
+```
+
 @software{amirmohammad_nl_hope,
   author       = {AmirMohammad},
   title        = {NL-HOPE: Nested Learning and HOPE Sequence Model in PyTorch},
@@ -174,4 +176,5 @@ If you use this implementation / codebase, please also cite the repository:
   version      = {latest}
 }
 
+```
 
