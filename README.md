@@ -135,15 +135,15 @@ cd Google_NestedLearning
 pip install -r requirements.txt
 
 
-Quick Start
-Train on WikiText-2
+#Quick Start
+#Train on WikiText-2
 
 python scripts/train.py \
   --config configs/hope_colab.yaml \
   --data configs/data_wikitext2.yaml
 
 
-Evaluate Perplexity
+#Evaluate Perplexity
 
 python scripts/eval_ppl.py \
   --checkpoint outputs/<exp_name>/last.ckpt \
@@ -151,7 +151,7 @@ python scripts/eval_ppl.py \
   --data configs/data_wikitext2.yaml
 
 
-Sample Text
+#Sample Text
 
 python scripts/sample.py \
   --checkpoint outputs/<exp_name>/last.ckpt \
@@ -160,6 +160,7 @@ python scripts/sample.py \
   --temperature 0.8 \
   --top_k 50 \
   --top_p 0.95
+```
 
 
 If you use this implementation / codebase, please also cite the repository:
